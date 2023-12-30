@@ -8,4 +8,20 @@ class Restaurant < ApplicationRecord
   # Validaciones
   validates :name, :address, length: { minimum: 5 }
   validates :description, length: {minimum: 15 }
+
+  # Geocoder
+  geocoded_by :address
+  after_validation :geocode, if: :will_save_change_to_address?
+
+  # PG Search
+  include PgSearch::Model
+
+  pg_search_scope :global_search,
+  against: [ :name, :description, :address ],
+  associated_against: {
+    categories: [ :name]
+  },
+  using: {
+    tsearch: { prefix: true }
+  }
 end
